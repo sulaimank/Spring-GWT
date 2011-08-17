@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	default-autowire="byName" xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:security="http://www.springframework.org/schema/security">
+
+
+
+ 	<context:component-scan base-package="com.mySampleApplication.server" />
+	<context:annotation-config />
+	<aop:aspectj-autoproxy />
+
+
+	<bean id="applicationService" class="com.mySampleApplication.server.MySampleApplicationServiceImpl" />
+
+
+	<!--<bean id="passwordEncoder" class="com.voxeo.security.EvoPasswordEncoder" />-->
+
+    <!--<security:authentication-manager>-->
+		<!--<security:authentication-provider user-service-ref="evolutionService">-->
+            <!--<security:password-encoder ref="passwordEncoder">-->
+                <!--<security:salt-source user-property="salt" />-->
+            <!--</security:password-encoder>-->
+    	<!--</security:authentication-provider>-->
+	<!--</security:authentication-manager>-->
+
+
+    <!--
+    Usernames/Passwords are
+        skarmali/koala
+        mcervantes/emu
+    -->
+    <security:authentication-manager>
+        <security:authentication-provider>
+            <security:password-encoder hash="md5"/>
+            <security:user-service>
+                <security:user name="skarmali" password="a564de63c2d0da68cf47586ee05984d7" authorities="ROLE_METERWORKS_ADMIN" />
+                <security:user name="mcervantes" password="65d15fe9156f9c4bbffd98085992a44e" authorities="ROLE_METERWORKS_ADMIN" />
+            </security:user-service>
+        </security:authentication-provider>
+    </security:authentication-manager>
+
+
+	<security:http auto-config='false' access-denied-page="/login.do?login=failed">
+        <security:anonymous enabled="false"/>
+		<security:intercept-url pattern="/login.do" filters="none" />
+		<!-- rely on method-level security for rpc -->
+		<security:intercept-url pattern="/*" access="ROLE_METERWORKS_ADMIN" />
+		<security:intercept-url pattern="/rpc/mbs.upload" access="ROLE_METERWORKS_ADMIN" />
+		<security:form-login login-page='/login.do' default-target-url='/entry.do?gwt.codesvr=127.0.0.1:9997'
+			always-use-default-target='true' />
+		<security:logout logout-success-url="/login.do?logout=success" />
+	</security:http>
+
+
+	<security:global-method-security>
+		<security:protect-pointcut access="ROLE_METERWORKS_ADMIN"
+			expression="execution(* com.voxeo.meterworks.server.*ServiceImpl.*(..))" />
+	</security:global-method-security>
+
+
+</beans>
